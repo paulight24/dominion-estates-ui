@@ -162,10 +162,10 @@ class BookingService {
       if (res.ok) {
         return { success: true, message: "Thank you! Your inquiry was sent successfully. We will follow up within 24 hours." };
       } else {
-        return { success: false, message: 'We encountered an error. Please email us directly at info@dominionestates.com.' };
+        return { success: false, message: 'We encountered an error. Please email us directly at info@dominionestatesrentals.com.' };
       }
     } catch {
-      return { success: false, message: 'Network error. Please verify your internet connection or email info@dominionestates.com.' };
+      return { success: false, message: 'Network error. Please verify your internet connection or email info@dominionestatesrentals.com.' };
     }
   }
 
