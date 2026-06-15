@@ -1,0 +1,13 @@
+{
+  "name": "dominion-estates-ui",
+  "version": "1.0.0",
+  "description": "Premium Furnished Rentals in Newport Beach - Dominion Estates",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
