@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://dominionestates.com/sitemap.xml
+Sitemap: https://dominionestatesrentals.com/sitemap.xml
