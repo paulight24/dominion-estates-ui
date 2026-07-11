@@ -330,6 +330,14 @@ class ModalComponent {
     if (track) {
       track.style.transform = `translateX(-${this.currentSlide * 100}%)`;
     }
+    // Prefetch the neighbours so the next/prev click shows instantly.
+    [this.currentSlide + 1, this.currentSlide - 1].forEach((i) => {
+      const p = this.photos[(i + this.photos.length) % this.photos.length];
+      if (p) {
+        const img = new Image();
+        img.src = p.url;
+      }
+    });
     document.querySelectorAll('.slider-dot-modal').forEach((d, i) => {
       d.classList.toggle('active', i === this.currentSlide);
     });
@@ -345,8 +353,11 @@ class ModalComponent {
     if (listing.cleaningFee) fees.push(`Cleaning Fee: $${listing.cleaningFee}`);
     if (listing.deposit) fees.push(`Refundable Security Deposit: $${listing.deposit}`);
 
+    // Eager-load the first two slides so the opening image and the first
+    // "next" click are instant; lazy-load the rest so they don't all
+    // download at once and starve the visible photo.
     const photosHtml = listing.photos
-      .map((p) => `<img src="${p.url}" alt="${p.alt}" onerror="this.src='';this.style.background='#0A1931';this.style.display='flex';" />`)
+      .map((p, i) => `<img src="${p.url}" alt="${p.alt}" width="1400" height="1050" loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${i === 0 ? 'high' : 'low'}" onerror="this.src='';this.style.background='#0A1931';this.style.display='flex';" />`)
       .join('');
 
     const dotsHtml = listing.photos
