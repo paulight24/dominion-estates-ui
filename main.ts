@@ -131,6 +131,68 @@ class ListingService {
         { url: 'https://www.furnishedfinder.com/_pdp_/522051/1/522051_1_46132678-full.jpg', alt: 'Courtyard Pool View' },
         { url: 'https://www.furnishedfinder.com/_pdp_/522051/1/522051_1_46132677-full.jpg', alt: 'Living Space Overview' }
       ]
+    },
+    {
+      id: 'newport-3',
+      badge: 'Available Now',
+      location: 'Newport Beach, CA',
+      title: 'Cozy 1BR Apartment Near Beach, Dining & Airport',
+      price: 3495,
+      priceUnit: 'month',
+      beds: '1 Bed · Queen Bed',
+      baths: '1 Bath · Fully Furnished',
+      utilitiesIncluded: true,
+      minStay: 30,
+      cleaningFee: 150,
+      deposit: 500,
+      description:
+        'This private 1BR apartment includes a bedroom, living room, kitchen, bathroom, WiFi, A/C, and assigned/private parking. ' +
+        'Recently refreshed with updated décor, improved furnishings, fresh bedding, and a cleaner guest-ready setup. ' +
+        'The kitchen includes a refrigerator, microwave, dishwasher, coffee maker, cookware, dishes, cups, cutlery, and basic utensils. ' +
+        'Located inside a Newport Beach apartment community with access to the pool, gym, tennis/basketball courts, and laundry area. ' +
+        'Guests have private access to the full 1BR apartment plus available community amenities. This is a self-check-in property — ' +
+        'guests receive detailed check-in instructions covering building, gate/access, parking, and unit details ahead of arrival. ' +
+        'Ideally situated near the beach, dining, and John Wayne Airport.',
+      amenities: [
+        '🛋️ Fully Furnished',
+        '🛏️ Queen Bed',
+        '🍳 Full Kitchen',
+        '📶 High-Speed WiFi',
+        '📺 Smart TV',
+        '💼 Office Desk',
+        '🚗 Assigned Parking',
+        '🏊 Private Pool & Spa',
+        '🏋️ Fitness Gym',
+        '🏸 Tennis & Basketball',
+        '🧺 Laundry Access',
+        '🚪 Self Check-In',
+        '⚡ Utilities Included'
+      ],
+      furnishedFinderUrl: 'https://www.furnishedfinder.com/property/522051_1',
+      photos: [
+        { url: 'images/newport-3/01_COVER_living_room_wide_current.jpg', alt: 'Living Room Wide View' },
+        { url: 'images/newport-3/02_bedroom_updated_clean_rug.jpg', alt: 'Bedroom Updated' },
+        { url: 'images/newport-3/03_bedroom_wide_with_paintings.jpg', alt: 'Bedroom Wide View' },
+        { url: 'images/newport-3/04_bedroom_side_view_rug.jpg', alt: 'Bedroom Side View' },
+        { url: 'images/newport-3/05_bedroom_tv_view.jpg', alt: 'Bedroom TV View' },
+        { url: 'images/newport-3/06_bedroom_extra_linens_closet.jpg', alt: 'Bedroom Closet & Linens' },
+        { url: 'images/newport-3/07_living_room_seating_wide.jpg', alt: 'Living Room Seating' },
+        { url: 'images/newport-3/08_living_room_sofa_current.jpg', alt: 'Living Room Sofa' },
+        { url: 'images/newport-3/09_living_room_accent_chair.jpg', alt: 'Living Room Accent Chair' },
+        { url: 'images/newport-3/10_dining_area_wide.jpg', alt: 'Dining Area' },
+        { url: 'images/newport-3/11_dining_work_area.jpg', alt: 'Dining & Work Area' },
+        { url: 'images/newport-3/12_desk_workspace.jpg', alt: 'Desk Workspace' },
+        { url: 'images/newport-3/13_kitchen_wide.jpg', alt: 'Kitchen Wide View' },
+        { url: 'images/newport-3/14_kitchen_counter_sink.jpg', alt: 'Kitchen Counter & Sink' },
+        { url: 'images/newport-3/15_kitchen_decor_stove.jpg', alt: 'Kitchen Stove' },
+        { url: 'images/newport-3/16_bathroom_vanity_clean.jpg', alt: 'Bathroom Vanity' },
+        { url: 'images/newport-3/17_bathroom_vanity_angle.jpg', alt: 'Bathroom Vanity Angle' },
+        { url: 'images/newport-3/18_bathroom_amenities.jpg', alt: 'Bathroom Amenities' },
+        { url: 'images/newport-3/19_bathroom_counter_detail.jpg', alt: 'Bathroom Counter Detail' },
+        { url: 'images/newport-3/20_living_room_detail.jpg', alt: 'Living Room Detail' },
+        { url: 'images/newport-3/21_bedroom_angle_with_mirror.jpg', alt: 'Bedroom with Mirror' },
+        { url: 'images/newport-3/22_bedroom_painting_lamps.jpg', alt: 'Bedroom Paintings & Lamps' }
+      ]
     }
   ];
 

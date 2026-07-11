@@ -139,6 +139,30 @@
             {"@type": "LocationFeatureSpecification", "name": "Gym", "value": true}
           ]
         }
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@type": "Apartment",
+          "name": "Cozy 1BR Apartment Near Beach, Dining & Airport",
+          "description": "Fully furnished 1-bedroom apartment in Newport Beach, recently refreshed with updated décor and furnishings. Access to private pool, gym, and tennis/basketball courts. All utilities included.",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Newport Beach",
+            "addressRegion": "CA",
+            "addressCountry": "US"
+          },
+          "numberOfRooms": 1,
+          "amenityFeature": [
+            {"@type": "LocationFeatureSpecification", "name": "WiFi", "value": true},
+            {"@type": "LocationFeatureSpecification", "name": "Utilities Included", "value": true},
+            {"@type": "LocationFeatureSpecification", "name": "Fully Furnished", "value": true},
+            {"@type": "LocationFeatureSpecification", "name": "Kitchen", "value": true},
+            {"@type": "LocationFeatureSpecification", "name": "Pool", "value": true},
+            {"@type": "LocationFeatureSpecification", "name": "Gym", "value": true}
+          ]
+        }
       }
     ]
   }
@@ -1747,6 +1771,7 @@
               <option value="general" selected>General inquiry / any unit</option>
               <option value="newport-1">Newport Beach Furnished Apartment — Unit 1</option>
               <option value="newport-2">Newport Beach Furnished Apartment — Unit 2</option>
+              <option value="newport-3">Cozy 1BR Apartment Near Beach, Dining & Airport</option>
             </select>
           </div>
           
@@ -1794,6 +1819,7 @@
           <ul class="footer-col-list">
             <li><a href="#listings">Unit 1 - Furnished Apt</a></li>
             <li><a href="#listings">Unit 2 - Furnished Apt</a></li>
+            <li><a href="#listings">Cozy 1BR Apt Near Beach</a></li>
             <li><a href="#payments">Square Deposit Page</a></li>
           </ul>
         </div>
@@ -1816,7 +1842,7 @@
   </footer>
 
   <!-- TypeScript compiled script -->
-  <script src="main.js"></script>
+  <script src="main.js?v=3"></script>
 
   <!-- Inline Contact form fallback logic (wires BookingService) -->
   <script>
