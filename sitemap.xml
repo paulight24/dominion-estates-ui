@@ -1,14 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
   <url>
     <loc>https://dominionestatesrentals.com/</loc>
-    <lastmod>2026-06-15</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://dominionestatesrentals.com/images/newport-3/01_COVER_living_room_wide_current.jpg</image:loc>
+      <image:title>Furnished living room in a Newport Beach apartment</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://dominionestatesrentals.com/images/newport-3/02_bedroom_updated_clean_rug.jpg</image:loc>
+      <image:title>Furnished bedroom in a Newport Beach apartment</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://dominionestatesrentals.com/images/newport-3/13_kitchen_wide.jpg</image:loc>
+      <image:title>Fully equipped kitchen in a Newport Beach furnished rental</image:title>
+    </image:image>
   </url>
 
 </urlset>
