@@ -43,6 +43,14 @@ The guest link is: `https://dominionestatesrentals.com/checkin/<slug>/`
 
 ## Current guides
 
+Guest-facing brand on these pages is **"Dominion Team"** (not "Dominion Estates"),
+so the company name isn't exposed on shared links. Slugs are deliberately not the
+unit number.
+
 | Unit | Link | Passcode |
 |------|------|----------|
 | 1945 Sherington Pl | `/checkin/newport-1945/` | 1945 |
+| PS-105 (1850 E 16th St) | `/checkin/ps/` | 1879 |
+
+The public Newport Beach area guide lives at `/area-guide/` and is linked from the
+homepage and from both check-in guides.
