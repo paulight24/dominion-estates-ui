@@ -84,8 +84,12 @@ function renderContent(d) {
     )
     .join('');
 
-  const fees = (d.departure.fees || [])
+  const co = d.checkout;
+  const coFees = (co.fees || [])
     .map((f) => `<li><span>${esc(f.item)}</span><span class="fee-amt">${esc(f.amount)}</span></li>`)
+    .join('');
+  const coChecklist = (co.checklist || [])
+    .map((c) => `<li>${rich(c)}</li>`)
     .join('');
 
   return `
@@ -165,9 +169,16 @@ function renderContent(d) {
       <section class="block depart-block">
         <span class="block-eyebrow">Before You Go</span>
         <h2>Checking out</h2>
-        ${d.departure.lines.map((l) => `<p>${rich(l)}</p>`).join('')}
-        ${fees ? `<ul class="fee-list">${fees}</ul>` : ''}
-        ${d.departure.note ? `<p class="depart-note">${esc(d.departure.note)}</p>` : ''}
+        <p>${rich(co.intro)}</p>
+        <div class="checkout-facts">
+          <div class="co-fact"><span class="co-fact-label">Check-out by</span><span class="co-fact-value">${esc(co.time)}</span></div>
+          <div class="co-fact"><span class="co-fact-label">Late check-out</span><span class="co-fact-value">${esc(co.lateFee)}</span></div>
+        </div>
+        ${co.returnItems ? `<div class="return-callout"><span class="return-ico">🔑</span><p>${rich(co.returnItems)}</p></div>` : ''}
+        <h3 class="co-sub">Your check-out checklist</h3>
+        <ul class="checklist">${coChecklist}</ul>
+        ${coFees ? `<h3 class="co-sub">Lost-item fees</h3><ul class="fee-list">${coFees}</ul>` : ''}
+        ${co.note ? `<p class="depart-note">${esc(co.note)}</p>` : ''}
       </section>
 
       <footer class="ck-foot">
@@ -326,6 +337,19 @@ function shell(payload, d) {
   .fee-list li{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:.92rem}
   .fee-amt{font-weight:700;color:var(--navy)}
   .depart-note{margin-top:16px;font-size:.85rem;color:var(--muted);font-style:italic}
+  .checkout-facts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+  .co-fact{background:var(--beige);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .co-fact-label{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dk);font-weight:700;margin-bottom:4px}
+  .co-fact-value{display:block;font-family:var(--serif);font-size:1.35rem;color:var(--navy);font-weight:700}
+  .return-callout{display:flex;gap:14px;align-items:center;background:linear-gradient(180deg,#fffdf8,#fbf6ec);border:1.5px solid var(--gold);border-radius:12px;padding:16px 18px;margin:6px 0 4px}
+  .return-callout .return-ico{font-size:1.5rem}
+  .return-callout p{margin:0;color:var(--navy);font-size:.95rem}
+  .co-sub{font-family:var(--serif);font-size:1.15rem;color:var(--navy);margin:24px 0 12px}
+  .checklist{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .checklist li{position:relative;padding-left:34px;color:#3c4552;font-size:.95rem;line-height:1.5}
+  .checklist li::before{content:'';position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;
+    background:var(--navy);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C5A880' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+    background-size:14px;background-repeat:no-repeat;background-position:center}
 
   .ck-foot{text-align:center;padding:44px 20px 8px}
   .ck-closing{font-family:var(--serif);font-size:1.5rem;color:var(--navy)}
@@ -338,7 +362,7 @@ function shell(payload, d) {
 
   @media(max-width:620px){
     .ck-hero h1{font-size:2rem}
-    .facts,.codes-row,.rules-grid{grid-template-columns:1fr}
+    .facts,.codes-row,.rules-grid,.checkout-facts{grid-template-columns:1fr}
     .block{padding:26px 20px}
     .pin input{width:52px;height:62px}
   }
