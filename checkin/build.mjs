@@ -36,29 +36,36 @@ const rich = (s = '') => String(s);
 // ── Content renderer (the part that gets encrypted) ─────────
 function renderContent(d) {
   const assets = `../assets/${d.slug}`;
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.checkin.geo)}`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.checkin.geo || d.checkin.address)}`;
 
   const codeChip = (value, note) =>
     value
       ? `<button class="code-chip" data-copy="${esc(value)}"><span class="code-chip-val">${esc(value)}</span><span class="code-chip-copy">Tap to copy</span></button>`
       : `<span class="code-chip code-chip-pending">${esc(note)}</span>`;
 
+  // A step can carry one photo (`photo` + `caption`) or several (`photos`:
+  // [{src, caption}]). Both render as tap-to-zoom figures.
+  const figures = (list, fallbackAlt) =>
+    (list || [])
+      .map(
+        (p) => `<figure class="step-figure">
+             <img src="${assets}/${esc(p.src)}" alt="${esc(p.caption || fallbackAlt)}" decoding="async" />
+             ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}
+           </figure>`
+      )
+      .join('');
+
   const steps = d.steps
     .map((s, i) => {
       const body = s.body.map((p) => `<p>${rich(p)}</p>`).join('');
-      const photo = s.photo
-        ? `<figure class="step-figure">
-             <img src="${assets}/${esc(s.photo)}" alt="${esc(s.caption || s.title)}" decoding="async" />
-             ${s.caption ? `<figcaption>${esc(s.caption)}</figcaption>` : ''}
-           </figure>`
-        : '';
+      const photoList = s.photos || (s.photo ? [{ src: s.photo, caption: s.caption }] : []);
       return `
         <article class="step">
           <div class="step-num">${i + 1}</div>
           <div class="step-body">
             <h3>${esc(s.title)}</h3>
             ${body}
-            ${photo}
+            ${figures(photoList, s.title)}
           </div>
         </article>`;
     })
@@ -70,6 +77,7 @@ function renderContent(d) {
       <div class="info-card">
         <div class="info-card-head"><span class="info-ico">${a.icon}</span><h4>${esc(a.title)}</h4></div>
         ${a.lines.map((l) => `<p>${rich(l)}</p>`).join('')}
+        ${a.photo ? `<figure class="step-figure info-figure"><img src="${assets}/${esc(a.photo)}" alt="${esc(a.photoCaption || a.title)}" decoding="async" />${a.photoCaption ? `<figcaption>${esc(a.photoCaption)}</figcaption>` : ''}</figure>` : ''}
       </div>`
     )
     .join('');
@@ -186,8 +194,9 @@ function renderContent(d) {
       </section>
 
       <footer class="ck-foot">
+        ${d.areaGuide ? `<a class="area-guide-btn" href="${esc(d.areaGuide)}" target="_blank" rel="noopener">🌴 Explore our Newport Beach area guide →</a>` : ''}
         <p class="ck-closing">${esc(d.closing)}</p>
-        <p class="ck-sign">— The ${esc(d.brand)} Team</p>
+        <p class="ck-sign">— The ${esc(d.brand)}</p>
       </footer>
     </div>`;
 }
@@ -361,6 +370,10 @@ function shell(payload, d) {
     background:var(--navy);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C5A880' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
     background-size:14px;background-repeat:no-repeat;background-position:center}
 
+  .info-figure{margin-top:14px}
+  .area-guide-btn{display:inline-block;margin-bottom:22px;padding:14px 26px;border:1.5px solid var(--gold);border-radius:12px;
+    color:var(--navy);text-decoration:none;font-weight:600;font-size:.95rem;transition:.2s;background:var(--white)}
+  .area-guide-btn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
   .ck-foot{text-align:center;padding:44px 20px 8px}
   .ck-closing{font-family:var(--serif);font-size:1.5rem;color:var(--navy)}
   .ck-sign{color:var(--gold-dk);font-weight:600;margin-top:6px}
