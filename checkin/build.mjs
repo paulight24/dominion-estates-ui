@@ -77,10 +77,14 @@ function renderContent(d) {
   const rules = d.rules
     .map(
       (r) => `
-      <div class="rule">
-        <span class="rule-ico">${r.icon}</span>
-        <div><strong>${esc(r.title)}</strong><span>${rich(r.text)}</span></div>
-      </div>`
+      <details class="rule">
+        <summary class="rule-sum">
+          <span class="rule-ico">${r.icon}</span>
+          <span class="rule-title">${esc(r.title)}</span>
+          <span class="rule-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="rule-text">${rich(r.text)}</div>
+      </details>`
     )
     .join('');
 
@@ -326,11 +330,17 @@ function shell(payload, d) {
   .info-ico{font-size:1.3rem}
   .info-card h4{font-family:var(--serif);font-size:1.15rem;color:var(--navy)}
   .info-card p{font-size:.92rem}
-  .rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .rule{display:flex;gap:12px;align-items:flex-start}
-  .rule-ico{font-size:1.25rem;line-height:1.4}
-  .rule strong{display:block;font-size:.95rem;color:var(--navy)}
-  .rule span{font-size:.86rem;color:var(--muted)}
+  .rules-grid{display:flex;flex-direction:column;gap:10px}
+  .rule{border:1px solid var(--border);border-radius:12px;background:var(--cream);overflow:hidden;transition:.18s}
+  .rule[open]{border-color:var(--gold);box-shadow:0 4px 16px rgba(10,25,49,.06)}
+  .rule-sum{display:flex;align-items:center;gap:12px;padding:15px 18px;cursor:pointer;list-style:none;user-select:none}
+  .rule-sum::-webkit-details-marker{display:none}
+  .rule-ico{font-size:1.2rem;line-height:1;flex-shrink:0}
+  .rule-title{flex:1;font-family:var(--serif);font-size:1.05rem;color:var(--navy);font-weight:600}
+  .rule-chev{width:11px;height:11px;border-right:2px solid var(--gold-dk);border-bottom:2px solid var(--gold-dk);
+    transform:rotate(45deg);transition:transform .2s;flex-shrink:0;margin-right:4px}
+  .rule[open] .rule-chev{transform:rotate(-135deg)}
+  .rule-text{padding:0 18px 16px 48px;font-size:.9rem;color:#3c4552;line-height:1.6}
 
   /* departure */
   .fee-list{list-style:none;margin:16px 0 0;border-top:1px solid var(--border)}
@@ -392,6 +402,15 @@ function shell(payload, d) {
 (function(){
   var PAYLOAD = ${JSON.stringify(payload)};
   var ITER = ${PBKDF2_ITERATIONS};
+
+  // Always require the passcode on every visit — including when the page
+  // is restored from the browser's back/forward cache with content already
+  // shown. Reloading drops the decrypted content and re-shows the lock.
+  window.addEventListener('pageshow', function(e){
+    if(e.persisted && document.getElementById('content').classList.contains('show')){
+      location.reload();
+    }
+  });
   var pin = document.getElementById('pin');
   var inputs = Array.prototype.slice.call(pin.querySelectorAll('input'));
   var err = document.getElementById('err');
