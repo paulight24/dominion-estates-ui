@@ -4,3 +4,6 @@ dist/
 *.log
 
 .claude/
+
+# Plaintext check-in content (keep out of public repo)
+checkin/_src/
