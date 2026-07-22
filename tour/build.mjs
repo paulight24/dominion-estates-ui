@@ -27,9 +27,7 @@ const esc = (s = '') =>
 
 // ── Content renderer ───────────────────────────────────────
 function renderContent(d) {
-  const greeting = d.guestName
-    ? `<p class="tour-prepared">Prepared for <strong>${esc(d.guestName)}</strong></p>`
-    : '';
+  const greeting = `<p class="tour-prepared" id="guest-greeting" style="display:none"></p>`;
 
   const videos = d.videos
     .map(
@@ -370,6 +368,15 @@ function shell(payload, d) {
   }
 
   function wireContent(){
+    var guestParam = new URLSearchParams(window.location.search).get('guest');
+    if(guestParam){
+      var el = document.getElementById('guest-greeting');
+      if(el){
+        var safe = guestParam.replace(/[<>"'&]/g,'');
+        el.innerHTML = 'Prepared for <strong>' + safe + '</strong>';
+        el.style.display = '';
+      }
+    }
     document.querySelectorAll('.video-poster').forEach(function(poster){
       poster.addEventListener('click', function(){
         var vid = poster.getAttribute('data-vid');

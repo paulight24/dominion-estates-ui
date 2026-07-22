@@ -9,7 +9,7 @@
   ═══════════════════════════════════════════════════════ -->
   <title>Dominion Estates | Premium Furnished Rentals in Newport Beach, CA</title>
   <meta name="description" content="Experience high-end coastal living with Dominion Estates. Fully furnished mid-term rentals in Newport Beach, California. Utilities included, 30-day minimum, move-in ready apartments with luxury amenities. Book direct." />
-  <meta name="keywords" content="furnished rentals Newport Beach CA, furnished apartments Newport Beach California, mid-term rentals Newport Beach, corporate housing Newport Beach, luxury furnished rental California, 30 day furnished rental Newport Beach, month to month furnished rental California, travel nurse housing Newport Beach, housing near Hoag Hospital, furnished rental Costa Mesa, furnished apartment Irvine CA, travel nurse housing Orange County, furnished vacation rental Newport Beach, corporate housing near John Wayne Airport, Dominion Estates" />
+  <meta name="keywords" content="furnished rentals Newport Beach CA, furnished apartments Newport Beach California, mid-term rentals Newport Beach, corporate housing Newport Beach, luxury furnished rental California, 30 day furnished rental Newport Beach, month to month furnished rental California, travel nurse housing Newport Beach, housing near Hoag Hospital, furnished rental Costa Mesa, furnished apartment Irvine CA, travel nurse housing Orange County, furnished vacation rental Newport Beach, corporate housing near John Wayne Airport, extended stay Newport Beach, temporary housing Orange County CA, relocating to Newport Beach, short term rental near Fashion Island, furnished housing near South Coast Plaza, insurance housing Newport Beach, internship housing Orange County, monthly rental near the beach California, pet free furnished apartment Newport Beach, move in ready apartment Newport Beach, all utilities included rental Newport Beach, Dominion Estates" />
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
   <meta name="author" content="Dominion Estates" />
   <link rel="canonical" href="https://dominionestatesrentals.com/" />
@@ -97,6 +97,36 @@
       }
     ],
     "priceRange": "$$$",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "bestRating": "5",
+      "ratingCount": "7",
+      "reviewCount": "7"
+    },
+    "review": [
+      {
+        "@type": "Review",
+        "author": {"@type": "Person", "name": "Tabor"},
+        "datePublished": "2025-03",
+        "reviewRating": {"@type": "Rating", "ratingValue": "5"},
+        "reviewBody": "My recent stay was wonderful! The host was super responsive. The pool felt like a resort with palm trees, shaded areas, and two different hot tubs."
+      },
+      {
+        "@type": "Review",
+        "author": {"@type": "Person", "name": "Madison"},
+        "datePublished": "2025-06",
+        "reviewRating": {"@type": "Rating", "ratingValue": "5"},
+        "reviewBody": "Awesome location and walking distance to a lot of great restaurants! The host was helpful and responsive."
+      },
+      {
+        "@type": "Review",
+        "author": {"@type": "Person", "name": "Julissa"},
+        "datePublished": "2025-09",
+        "reviewRating": {"@type": "Rating", "ratingValue": "5"},
+        "reviewBody": "Place was exactly how it shows in the description. The area was close to everything and was a nice neighborhood. We loved it!"
+      }
+    ],
     "sameAs": [
       "https://www.furnishedfinder.com"
     ]
@@ -1334,13 +1364,18 @@
       overflow: hidden;
     }
 
+    .reviews-carousel {
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
     .reviews-track {
       display: flex;
       gap: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
       padding: 4px 4px 20px;
       scrollbar-width: none;
@@ -1349,6 +1384,42 @@
     .reviews-track::-webkit-scrollbar {
       display: none;
     }
+
+    .review-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      color: var(--navy);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      z-index: 2;
+    }
+
+    .review-arrow:hover {
+      background: var(--navy);
+      color: var(--gold);
+      border-color: var(--navy);
+      box-shadow: var(--shadow-md);
+    }
+
+    .review-arrow:disabled {
+      opacity: 0.3;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .review-arrow--prev { left: -23px; }
+    .review-arrow--next { right: -23px; }
 
     .review-card-hp {
       flex: 0 0 calc(33.333% - 16px);
@@ -1705,6 +1776,8 @@
         flex: 0 0 calc(50% - 12px);
         min-width: 280px;
       }
+      .review-arrow--prev { left: 4px; }
+      .review-arrow--next { right: 4px; }
       .contact-container {
         grid-template-columns: 1fr;
         gap: 50px;
@@ -1950,66 +2023,94 @@
       <p class="section-desc">Real feedback from guests who've stayed in our Newport Beach furnished apartments.</p>
     </div>
 
-    <div class="reviews-track">
-      <div class="review-card-hp">
-        <div class="review-card-head">
-          <div class="review-avatar-hp">T</div>
-          <div>
-            <div class="review-name-hp">Tabor</div>
-            <div class="review-date-hp">March 2025</div>
+    <div class="reviews-carousel" id="reviews-carousel">
+      <button class="review-arrow review-arrow--prev" id="rev-prev" aria-label="Previous reviews" disabled>&#8592;</button>
+      <div class="reviews-track" id="reviews-track">
+        <div class="review-card-hp">
+          <div class="review-card-head">
+            <div class="review-avatar-hp">T</div>
+            <div>
+              <div class="review-name-hp">Tabor</div>
+              <div class="review-date-hp">March 2025</div>
+            </div>
+            <div class="review-stars-hp">★★★★★</div>
           </div>
-          <div class="review-stars-hp">★★★★★</div>
+          <p class="review-text-hp">My recent stay was wonderful! The host was super responsive. The pool felt like a resort with palm trees, shaded areas, and two different hot tubs. I'm already looking forward to my next visit!</p>
         </div>
-        <p class="review-text-hp">My recent stay was wonderful! The host was super responsive. The pool felt like a resort with palm trees, shaded areas, and two different hot tubs. I'm already looking forward to my next visit!</p>
-      </div>
 
-      <div class="review-card-hp">
-        <div class="review-card-head">
-          <div class="review-avatar-hp">M</div>
-          <div>
-            <div class="review-name-hp">Madison</div>
-            <div class="review-date-hp">June 2025</div>
+        <div class="review-card-hp">
+          <div class="review-card-head">
+            <div class="review-avatar-hp">M</div>
+            <div>
+              <div class="review-name-hp">Madison</div>
+              <div class="review-date-hp">June 2025</div>
+            </div>
+            <div class="review-stars-hp">★★★★★</div>
           </div>
-          <div class="review-stars-hp">★★★★★</div>
+          <p class="review-text-hp">Awesome location and walking distance to a lot of great restaurants! The host was helpful and responsive.</p>
         </div>
-        <p class="review-text-hp">Awesome location and walking distance to a lot of great restaurants! The host was helpful and responsive.</p>
-      </div>
 
-      <div class="review-card-hp">
-        <div class="review-card-head">
-          <div class="review-avatar-hp">J</div>
-          <div>
-            <div class="review-name-hp">Julissa</div>
-            <div class="review-date-hp">September 2025</div>
+        <div class="review-card-hp">
+          <div class="review-card-head">
+            <div class="review-avatar-hp">J</div>
+            <div>
+              <div class="review-name-hp">Julissa</div>
+              <div class="review-date-hp">September 2025</div>
+            </div>
+            <div class="review-stars-hp">★★★★★</div>
           </div>
-          <div class="review-stars-hp">★★★★★</div>
+          <p class="review-text-hp">Place was exactly how it shows in the description. The area was close to everything and was a nice neighborhood. We loved it!</p>
         </div>
-        <p class="review-text-hp">Place was exactly how it shows in the description. The area was close to everything and was a nice neighborhood. We loved it!</p>
-      </div>
 
-      <div class="review-card-hp">
-        <div class="review-card-head">
-          <div class="review-avatar-hp">E</div>
-          <div>
-            <div class="review-name-hp">Eric</div>
-            <div class="review-date-hp">September 2025</div>
+        <div class="review-card-hp">
+          <div class="review-card-head">
+            <div class="review-avatar-hp">E</div>
+            <div>
+              <div class="review-name-hp">Eric</div>
+              <div class="review-date-hp">September 2025</div>
+            </div>
+            <div class="review-stars-hp">★★★★★</div>
           </div>
-          <div class="review-stars-hp">★★★★★</div>
+          <p class="review-text-hp">Convenient location. Kitchen had what I needed to cook for myself for a longer stay. Complex is quiet and parking was very close.</p>
         </div>
-        <p class="review-text-hp">Convenient location. Kitchen had what I needed to cook for myself for a longer stay. Complex is quiet and parking was very close.</p>
-      </div>
 
-      <div class="review-card-hp">
-        <div class="review-card-head">
-          <div class="review-avatar-hp">S</div>
-          <div>
-            <div class="review-name-hp">Scott</div>
-            <div class="review-date-hp">March 2025</div>
+        <div class="review-card-hp">
+          <div class="review-card-head">
+            <div class="review-avatar-hp">S</div>
+            <div>
+              <div class="review-name-hp">Scott</div>
+              <div class="review-date-hp">March 2025</div>
+            </div>
+            <div class="review-stars-hp">★★★★★</div>
           </div>
-          <div class="review-stars-hp">★★★★★</div>
+          <p class="review-text-hp">Great location. Excellent value. Kean Coffee is right across the street — highly recommend.</p>
         </div>
-        <p class="review-text-hp">Great location. Excellent value. Kean Coffee is right across the street — highly recommend.</p>
+
+        <div class="review-card-hp">
+          <div class="review-card-head">
+            <div class="review-avatar-hp">T</div>
+            <div>
+              <div class="review-name-hp">Tish</div>
+              <div class="review-date-hp">August 2025</div>
+            </div>
+            <div class="review-stars-hp">★★★★★</div>
+          </div>
+          <p class="review-text-hp">The pool was very nice and great, walkable location.</p>
+        </div>
+
+        <div class="review-card-hp">
+          <div class="review-card-head">
+            <div class="review-avatar-hp">C</div>
+            <div>
+              <div class="review-name-hp">Cooper</div>
+              <div class="review-date-hp">September 2025</div>
+            </div>
+            <div class="review-stars-hp">★★★★★</div>
+          </div>
+          <p class="review-text-hp">Great stay, communicative host.</p>
+        </div>
       </div>
+      <button class="review-arrow review-arrow--next" id="rev-next" aria-label="Next reviews">&#8594;</button>
     </div>
   </section>
 
@@ -2180,7 +2281,7 @@
   </footer>
 
   <!-- TypeScript compiled script -->
-  <script src="main.js?v=5"></script>
+  <script src="main.js?v=6"></script>
 
   <!-- Inline Contact form fallback logic (wires BookingService) -->
   <script>
@@ -2246,6 +2347,25 @@
             mobileToggle.textContent = '☰';
           });
         });
+      }
+
+      // Reviews carousel arrows
+      const revTrack = document.getElementById('reviews-track');
+      const revPrev = document.getElementById('rev-prev');
+      const revNext = document.getElementById('rev-next');
+      if (revTrack && revPrev && revNext) {
+        const scrollAmt = () => {
+          const card = revTrack.querySelector('.review-card-hp');
+          return card ? card.offsetWidth + 24 : 340;
+        };
+        const updateArrows = () => {
+          revPrev.disabled = revTrack.scrollLeft < 10;
+          revNext.disabled = revTrack.scrollLeft + revTrack.clientWidth >= revTrack.scrollWidth - 10;
+        };
+        revPrev.addEventListener('click', () => { revTrack.scrollBy({ left: -scrollAmt(), behavior: 'smooth' }); });
+        revNext.addEventListener('click', () => { revTrack.scrollBy({ left: scrollAmt(), behavior: 'smooth' }); });
+        revTrack.addEventListener('scroll', updateArrows);
+        updateArrows();
       }
     });
   </script>
