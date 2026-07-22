@@ -5,5 +5,6 @@ dist/
 
 .claude/
 
-# Plaintext check-in content (keep out of public repo)
+# Plaintext check-in and tour content (keep out of public repo)
 checkin/_src/
+tour/_src/

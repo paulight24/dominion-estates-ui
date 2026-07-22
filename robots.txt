@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /checkin/
+Disallow: /tour/
 
 Sitemap: https://dominionestatesrentals.com/sitemap.xml

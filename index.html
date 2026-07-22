@@ -1328,6 +1328,104 @@
       line-height: 1.7;
     }
 
+    /* Reviews Section */
+    .reviews-section {
+      background-color: var(--white);
+      overflow: hidden;
+    }
+
+    .reviews-track {
+      display: flex;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 4px 4px 20px;
+      scrollbar-width: none;
+    }
+
+    .reviews-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .review-card-hp {
+      flex: 0 0 calc(33.333% - 16px);
+      min-width: 300px;
+      scroll-snap-align: start;
+      background: var(--beige);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px 28px;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .review-card-hp:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+      border-color: var(--gold);
+    }
+
+    .review-card-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .review-avatar-hp {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: var(--gold);
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .review-name-hp {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      color: var(--navy);
+      font-weight: 600;
+    }
+
+    .review-date-hp {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .review-stars-hp {
+      margin-left: auto;
+      font-size: 1.1rem;
+      color: var(--gold-dark);
+      letter-spacing: 2px;
+    }
+
+    .review-text-hp {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .review-text-hp::before {
+      content: '\201C';
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      color: var(--gold);
+      line-height: 0;
+      vertical-align: -0.35em;
+      margin-right: 4px;
+    }
+
     /* FAQ Section */
     .faq-section {
       background-color: var(--white);
@@ -1603,6 +1701,10 @@
         grid-template-columns: 1fr;
         max-width: 450px;
       }
+      .review-card-hp {
+        flex: 0 0 calc(50% - 12px);
+        min-width: 280px;
+      }
       .contact-container {
         grid-template-columns: 1fr;
         gap: 50px;
@@ -1836,6 +1938,77 @@
         <div class="feature-icon-wrap">☀️</div>
         <h3>All-Inclusive Rates</h3>
         <p>No unexpected bills. Electricity, water, high-speed WiFi, smart TVs, gas, and trash services are all unified into a single monthly fee.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUEST REVIEWS -->
+  <section class="reviews-section">
+    <div class="section-header">
+      <span class="section-eyebrow">Guest Experiences</span>
+      <h2 class="section-title">What Our Guests <em>Are Saying</em></h2>
+      <p class="section-desc">Real feedback from guests who've stayed in our Newport Beach furnished apartments.</p>
+    </div>
+
+    <div class="reviews-track">
+      <div class="review-card-hp">
+        <div class="review-card-head">
+          <div class="review-avatar-hp">T</div>
+          <div>
+            <div class="review-name-hp">Tabor</div>
+            <div class="review-date-hp">March 2025</div>
+          </div>
+          <div class="review-stars-hp">★★★★★</div>
+        </div>
+        <p class="review-text-hp">My recent stay was wonderful! The host was super responsive. The pool felt like a resort with palm trees, shaded areas, and two different hot tubs. I'm already looking forward to my next visit!</p>
+      </div>
+
+      <div class="review-card-hp">
+        <div class="review-card-head">
+          <div class="review-avatar-hp">M</div>
+          <div>
+            <div class="review-name-hp">Madison</div>
+            <div class="review-date-hp">June 2025</div>
+          </div>
+          <div class="review-stars-hp">★★★★★</div>
+        </div>
+        <p class="review-text-hp">Awesome location and walking distance to a lot of great restaurants! The host was helpful and responsive.</p>
+      </div>
+
+      <div class="review-card-hp">
+        <div class="review-card-head">
+          <div class="review-avatar-hp">J</div>
+          <div>
+            <div class="review-name-hp">Julissa</div>
+            <div class="review-date-hp">September 2025</div>
+          </div>
+          <div class="review-stars-hp">★★★★★</div>
+        </div>
+        <p class="review-text-hp">Place was exactly how it shows in the description. The area was close to everything and was a nice neighborhood. We loved it!</p>
+      </div>
+
+      <div class="review-card-hp">
+        <div class="review-card-head">
+          <div class="review-avatar-hp">E</div>
+          <div>
+            <div class="review-name-hp">Eric</div>
+            <div class="review-date-hp">September 2025</div>
+          </div>
+          <div class="review-stars-hp">★★★★★</div>
+        </div>
+        <p class="review-text-hp">Convenient location. Kitchen had what I needed to cook for myself for a longer stay. Complex is quiet and parking was very close.</p>
+      </div>
+
+      <div class="review-card-hp">
+        <div class="review-card-head">
+          <div class="review-avatar-hp">S</div>
+          <div>
+            <div class="review-name-hp">Scott</div>
+            <div class="review-date-hp">March 2025</div>
+          </div>
+          <div class="review-stars-hp">★★★★★</div>
+        </div>
+        <p class="review-text-hp">Great location. Excellent value. Kean Coffee is right across the street — highly recommend.</p>
       </div>
     </div>
   </section>
