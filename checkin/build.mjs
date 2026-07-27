@@ -1,31 +1,35 @@
 // ============================================================
 // Dominion Estates — Check-In page builder
-// Renders a luxurious, passcode-gated check-in page whose content
-// is ENCRYPTED with the passcode (PBKDF2 + AES-GCM). The sensitive
+// Renders a luxurious check-in page whose content is ENCRYPTED
+// (AES-GCM) with a random per-property content key. The sensitive
 // details (codes, WiFi, address) never appear in the page source or
-// search-engine cache — the page only decrypts when the correct
-// passcode is entered.
+// search-engine cache — the page only decrypts after the guest's
+// 4-digit code is validated against Firestore (see checkin-admin/)
+// and Firestore hands back this property's content key.
 //
 // Usage:  node checkin/build.mjs newport-1945
 // Reads:  checkin/_src/<slug>.json   (plaintext — git-ignored)
 // Writes: checkin/<slug>/index.html  (encrypted — safe to commit)
+//
+// The first time a property is built, a random content key is
+// generated and saved back into checkin/_src/<slug>.json as
+// "contentKeyB64" — keep rebuilding with the SAME key (don't delete
+// that field) or every code already registered in Firestore for this
+// property will stop working. Register the property + its content
+// key once in checkin-admin/ after the first build.
 // ============================================================
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { webcrypto as crypto } from 'node:crypto';
+import { FIREBASE_CONFIG } from './firebase-config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PBKDF2_ITERATIONS = 310000;
-
-const slug = process.argv[2];
-if (!slug) {
-  console.error('Usage: node checkin/build.mjs <slug>   (e.g. newport-1945)');
-  process.exit(1);
-}
-
-const data = JSON.parse(readFileSync(join(__dirname, '_src', `${slug}.json`), 'utf8'));
+// True when run directly (`node checkin/build.mjs <slug>`); false when
+// imported as a module (e.g. by the one-off migration script), so this
+// file can double as a small library without also running the CLI flow.
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 // ── Small HTML helpers ──────────────────────────────────────
 const esc = (s = '') =>
@@ -34,7 +38,7 @@ const esc = (s = '') =>
 const rich = (s = '') => String(s);
 
 // ── Content renderer (the part that gets encrypted) ─────────
-function renderContent(d) {
+export function renderContent(d) {
   const assets = `../assets/${d.slug}`;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.checkin.geo || d.checkin.address)}`;
 
@@ -201,22 +205,14 @@ function renderContent(d) {
     </div>`;
 }
 
-// ── Encrypt the content with the passcode ───────────────────
-async function encrypt(plaintext, passcode) {
+// ── Encrypt the content with the property's content key ─────
+export async function encryptWithKey(plaintext, rawKeyBytes) {
   const enc = new TextEncoder();
-  const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const keyMaterial = await crypto.subtle.importKey(
+  const key = await crypto.subtle.importKey(
     'raw',
-    enc.encode(passcode),
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
-  const key = await crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    rawKeyBytes,
+    { name: 'AES-GCM' },
     false,
     ['encrypt']
   );
@@ -226,12 +222,12 @@ async function encrypt(plaintext, passcode) {
     enc.encode(plaintext)
   );
   const b64 = (buf) => Buffer.from(buf).toString('base64');
-  return { salt: b64(salt), iv: b64(iv), ct: b64(new Uint8Array(ct)) };
+  return { iv: b64(iv), ct: b64(new Uint8Array(ct)) };
 }
 
 // ── Page shell (unlock UI + decryptor) ──────────────────────
-function shell(payload, d) {
-  const digits = String(d.passcode).length;
+export function shell(payload, d) {
+  const digits = d.codeLength || 4;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -411,13 +407,18 @@ function shell(payload, d) {
   <main id="content" aria-live="polite"></main>
   <div id="lightbox"><img alt="" /></div>
 
-<script>
-(function(){
-  var PAYLOAD = ${JSON.stringify(payload)};
-  var ITER = ${PBKDF2_ITERATIONS};
+<script type="module">
+import { initializeApp } from '../../vendor/firebase/firebase-app.js';
+import { getFirestore, doc, getDoc } from '../../vendor/firebase/firebase-firestore-lite.js';
 
-  // Always require the passcode on every visit — including when the page
-  // is restored from the browser's back/forward cache with content already
+(async function(){
+  var SLUG = ${JSON.stringify(d.slug)};
+  var PAYLOAD = ${JSON.stringify(payload)};
+  var app = initializeApp(${JSON.stringify(FIREBASE_CONFIG)});
+  var db = getFirestore(app);
+
+  // Always require the code on every visit — including when the page is
+  // restored from the browser's back/forward cache with content already
   // shown. Reloading drops the decrypted content and re-shows the lock.
   window.addEventListener('pageshow', function(e){
     if(e.persisted && document.getElementById('content').classList.contains('show')){
@@ -450,12 +451,21 @@ function shell(payload, d) {
 
   function b64ToBytes(b64){ var s=atob(b64); var a=new Uint8Array(s.length); for(var i=0;i<s.length;i++)a[i]=s.charCodeAt(i); return a; }
 
+  // Ask Firestore whether this code is currently valid for this property.
+  // Firestore only hands the document back if it exists, is active, and
+  // hasn't expired (enforced by firestore.rules, not just here) — any other
+  // case (wrong code, expired, revoked, offline) throws.
   async function tryUnlock(code){
-    var enc = new TextEncoder();
-    var km = await crypto.subtle.importKey('raw', enc.encode(code), 'PBKDF2', false, ['deriveKey']);
-    var key = await crypto.subtle.deriveKey(
-      { name:'PBKDF2', salt:b64ToBytes(PAYLOAD.salt), iterations:ITER, hash:'SHA-256' },
-      km, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+    var snap;
+    try {
+      snap = await getDoc(doc(db, 'properties', SLUG, 'codes', code));
+    } catch (e) {
+      if (e && e.code === 'unavailable') { var offline = new Error('offline'); offline.offline = true; throw offline; }
+      throw e;
+    }
+    if (!snap.exists()) throw new Error('invalid code');
+    var keyBytes = b64ToBytes(snap.data().contentKeyB64);
+    var key = await crypto.subtle.importKey('raw', keyBytes, { name:'AES-GCM' }, false, ['decrypt']);
     var pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv:b64ToBytes(PAYLOAD.iv) }, key, b64ToBytes(PAYLOAD.ct));
     return new TextDecoder().decode(pt);
   }
@@ -499,7 +509,9 @@ function shell(payload, d) {
       var html = await tryUnlock(code);
       reveal(html);
     } catch(e){
-      err.textContent = "That code doesn't match. Please try again.";
+      err.textContent = e && e.offline
+        ? "Couldn't reach the server — check your connection and try again."
+        : "That code doesn't match. Please try again.";
       err.classList.add('show');
       inputs.forEach(function(i){ i.value=''; }); inputs[0].focus();
       btn.disabled = false; btn.textContent = 'Unlock my guide';
@@ -513,10 +525,37 @@ function shell(payload, d) {
 </html>`;
 }
 
-// ── Build ───────────────────────────────────────────────────
-const contentHtml = renderContent(data);
-const payload = await encrypt(contentHtml, String(data.passcode));
-const outDir = join(__dirname, data.slug);
-mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, 'index.html'), shell(payload, data), 'utf8');
-console.log(`✓ Built checkin/${data.slug}/index.html  (passcode: ${data.passcode}, content encrypted)`);
+// ── Build (CLI entry point only — not run when imported) ────
+if (isMain) {
+  const slug = process.argv[2];
+  if (!slug) {
+    console.error('Usage: node checkin/build.mjs <slug>   (e.g. newport-1945)');
+    process.exit(1);
+  }
+
+  const srcPath = join(__dirname, '_src', `${slug}.json`);
+  const data = JSON.parse(readFileSync(srcPath, 'utf8'));
+
+  // Content key is generated once and reused on every rebuild (persisted
+  // back into the source JSON) — rotating it would silently break every
+  // code already registered for this property in Firestore.
+  let isNewKey = false;
+  if (!data.contentKeyB64) {
+    data.contentKeyB64 = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
+    isNewKey = true;
+    writeFileSync(srcPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
+  }
+
+  const contentHtml = renderContent(data);
+  const payload = await encryptWithKey(contentHtml, Buffer.from(data.contentKeyB64, 'base64'));
+  const outDir = join(__dirname, data.slug);
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(join(outDir, 'index.html'), shell(payload, data), 'utf8');
+  console.log(`✓ Built checkin/${data.slug}/index.html`);
+  if (isNewKey) {
+    console.log(`\n  New content key generated and saved into ${srcPath}.`);
+    console.log(`  Register this property in checkin-admin/ with content key:\n`);
+    console.log(`    ${data.contentKeyB64}\n`);
+    console.log('  (then add at least one code so the page can actually be unlocked)');
+  }
+}

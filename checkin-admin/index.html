@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Check-In Codes · Admin</title>
+<style>
+  :root{
+    --navy:#0A1931; --gold:#C5A880; --gold-dk:#B8975F;
+    --beige:#F8F5F0; --cream:#FDFBF7; --white:#fff; --ink:#1A1D20; --muted:#64748B;
+    --border:#e7e1d6; --shadow:0 10px 30px rgba(10,25,49,.10); --danger:#b4232a;
+    --sans:'Segoe UI',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);background:var(--beige);line-height:1.5;padding:20px}
+  .wrap{max-width:640px;margin:0 auto}
+  h1{font-size:1.4rem;color:var(--navy);margin-bottom:4px}
+  .sub{color:var(--muted);font-size:.9rem;margin-bottom:24px}
+  .card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);margin-bottom:20px}
+  label{display:block;font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--gold-dk);margin-bottom:6px}
+  input,select{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:1rem;font-family:inherit;margin-bottom:16px;background:var(--cream)}
+  input:focus,select:focus{outline:none;border-color:var(--gold)}
+  button{cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:600;border-radius:9px;border:none;padding:11px 18px;transition:.15s}
+  .btn-primary{background:var(--navy);color:#fff;width:100%}
+  .btn-primary:hover{background:#12294c}
+  .btn-primary:disabled{opacity:.55;cursor:default}
+  .btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+  .btn-ghost:hover{border-color:var(--gold)}
+  .btn-danger{background:transparent;color:var(--danger);border:1.5px solid #f0c9cb;padding:7px 12px;font-size:.82rem}
+  .btn-danger:hover{background:#fbebec}
+  .row{display:flex;gap:10px}
+  .row > *{flex:1}
+  .err{color:var(--danger);font-size:.86rem;margin:-8px 0 14px;display:none}
+  .err.show{display:block}
+  .muted{color:var(--muted);font-size:.86rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .topbar .who{font-size:.85rem;color:var(--muted)}
+  h2{font-size:1.05rem;color:var(--navy);margin-bottom:14px}
+  details summary{cursor:pointer;color:var(--gold-dk);font-weight:600;font-size:.88rem;margin-bottom:4px}
+  .code-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .code-row{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--cream)}
+  .code-row.expired{opacity:.55}
+  .code-val{font-family:Georgia,serif;font-size:1.3rem;font-weight:700;color:var(--navy);letter-spacing:.08em;min-width:74px}
+  .code-meta{flex:1;font-size:.82rem;color:var(--muted)}
+  .code-meta .label{color:var(--ink);font-weight:600;display:block}
+  .badge{font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:#e8f5e9;color:#2e7d32}
+  .badge.off{background:#f1f1f1;color:var(--muted)}
+  .result{background:#fffdf8;border:1.5px dashed var(--gold);border-radius:10px;padding:16px;margin-top:16px;font-size:.92rem}
+  .result pre{white-space:pre-wrap;font-family:inherit;margin:8px 0 12px;font-size:.95rem;color:var(--navy)}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login-view">
+    <h1>Dominion Estates</h1>
+    <p class="sub">Check-in code management — sign in to continue</p>
+    <form class="card" id="login-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required />
+      <div class="err" id="login-err"></div>
+      <button class="btn-primary" type="submit" id="login-btn">Sign in</button>
+    </form>
+  </div>
+
+  <div id="admin-view" class="hidden">
+    <div class="topbar">
+      <div>
+        <h1>Check-In Codes</h1>
+        <p class="sub">Manage access codes for each property</p>
+      </div>
+      <div style="text-align:right">
+        <div class="who" id="who"></div>
+        <button class="btn-ghost" id="logout-btn" style="margin-top:6px;padding:6px 12px;font-size:.82rem">Sign out</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <label for="property-select">Property</label>
+      <select id="property-select"></select>
+      <details>
+        <summary>Register a new property</summary>
+        <div style="margin-top:14px">
+          <label for="new-slug">Slug (must match the folder in /checkin/, e.g. newport-1945)</label>
+          <input id="new-slug" placeholder="newport-1945" />
+          <label for="new-name">Name (for your reference only)</label>
+          <input id="new-name" placeholder="1945 Sherington Pl" />
+          <label for="new-key">Content key (printed by build.mjs when the property was first built)</label>
+          <input id="new-key" placeholder="base64 key from build.mjs output" />
+          <div class="err" id="new-property-err"></div>
+          <button class="btn-ghost" id="save-property-btn" type="button">Save property</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="card" id="codes-card">
+      <h2>Active &amp; recent codes</h2>
+      <div id="codes-list" class="code-list"><p class="muted">Loading…</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Send a new code</h2>
+      <div class="row">
+        <div>
+          <label for="new-code">4-digit code</label>
+          <input id="new-code" inputmode="numeric" maxlength="4" placeholder="e.g. last 4 of their phone" />
+        </div>
+        <div>
+          <label for="new-expiry">Expires</label>
+          <input id="new-expiry" type="date" />
+        </div>
+      </div>
+      <label for="new-label">Label (for you only — guest never sees it)</label>
+      <input id="new-label" placeholder="e.g. Smith · Aug 2–9" />
+      <div class="row" style="margin-bottom:16px">
+        <button class="btn-ghost" id="suggest-code-btn" type="button">Suggest random code</button>
+      </div>
+      <div class="err" id="add-code-err"></div>
+      <button class="btn-primary" id="add-code-btn" type="button">Generate &amp; save code</button>
+
+      <div class="result hidden" id="result">
+        <strong>Ready to send:</strong>
+        <pre id="result-text"></pre>
+        <button class="btn-ghost" id="copy-result-btn" type="button">Copy message</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from '../vendor/firebase/firebase-app.js';
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+  setPersistence, browserLocalPersistence
+} from '../vendor/firebase/firebase-auth.js';
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs,
+  Timestamp, serverTimestamp
+} from '../vendor/firebase/firebase-firestore-lite.js';
+import { FIREBASE_CONFIG } from '../checkin/firebase-config.js';
+
+const ADMIN_EMAILS = ['dominionestatesllc7@gmail.com', 'ebabalola01@gmail.com'];
+const GUIDE_BASE_URL = 'https://dominionestatesrentals.com/checkin/';
+
+const app = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+await setPersistence(auth, browserLocalPersistence);
+
+const $ = (id) => document.getElementById(id);
+const loginView = $('login-view'), adminView = $('admin-view');
+
+let properties = {}; // slug -> {name, contentKeyB64}
+
+// ── Auth ──────────────────────────────────────────────────
+$('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('login-err');
+  err.classList.remove('show');
+  $('login-btn').disabled = true; $('login-btn').textContent = 'Signing in…';
+  try {
+    await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value);
+  } catch (e2) {
+    err.textContent = 'Sign-in failed — check your email and password.';
+    err.classList.add('show');
+  }
+  $('login-btn').disabled = false; $('login-btn').textContent = 'Sign in';
+});
+
+$('logout-btn').addEventListener('click', () => signOut(auth));
+
+onAuthStateChanged(auth, async (user) => {
+  if (user && ADMIN_EMAILS.includes(user.email)) {
+    loginView.classList.add('hidden');
+    adminView.classList.remove('hidden');
+    $('who').textContent = 'Signed in as ' + user.email;
+    await loadProperties();
+  } else {
+    if (user) await signOut(auth); // signed in, but not an admin email
+    adminView.classList.add('hidden');
+    loginView.classList.remove('hidden');
+  }
+});
+
+// ── Properties ────────────────────────────────────────────
+async function loadProperties() {
+  const snap = await getDocs(collection(db, 'properties'));
+  properties = {};
+  snap.forEach((d) => { properties[d.id] = d.data(); });
+
+  const sel = $('property-select');
+  sel.innerHTML = '';
+  const slugs = Object.keys(properties).sort();
+  if (slugs.length === 0) {
+    sel.innerHTML = '<option value="">No properties yet — register one below</option>';
+  }
+  for (const slug of slugs) {
+    const opt = document.createElement('option');
+    opt.value = slug;
+    opt.textContent = `${properties[slug].name || slug} (${slug})`;
+    sel.appendChild(opt);
+  }
+  if (slugs.length) await loadCodes(slugs[0]);
+  else $('codes-list').innerHTML = '<p class="muted">No properties registered yet.</p>';
+}
+
+$('property-select').addEventListener('change', (e) => {
+  if (e.target.value) loadCodes(e.target.value);
+});
+
+$('save-property-btn').addEventListener('click', async () => {
+  const err = $('new-property-err');
+  err.classList.remove('show');
+  const slug = $('new-slug').value.trim();
+  const name = $('new-name').value.trim();
+  const contentKeyB64 = $('new-key').value.trim();
+  if (!/^[a-z0-9-]+$/.test(slug) || !name || !contentKeyB64) {
+    err.textContent = 'Fill in slug (lowercase letters/numbers/dashes), name, and content key.';
+    err.classList.add('show');
+    return;
+  }
+  await setDoc(doc(db, 'properties', slug), {
+    name, contentKeyB64,
+    createdAt: serverTimestamp(), createdBy: auth.currentUser.email,
+  }, { merge: true });
+  $('new-slug').value = ''; $('new-name').value = ''; $('new-key').value = '';
+  await loadProperties();
+  $('property-select').value = slug;
+  await loadCodes(slug);
+});
+
+// ── Codes ─────────────────────────────────────────────────
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : ts;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+async function loadCodes(slug) {
+  const list = $('codes-list');
+  list.innerHTML = '<p class="muted">Loading…</p>';
+  const snap = await getDocs(collection(db, 'properties', slug, 'codes'));
+  const codes = [];
+  snap.forEach((d) => codes.push({ id: d.id, ...d.data() }));
+  codes.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+  if (!codes.length) {
+    list.innerHTML = '<p class="muted">No codes yet for this property.</p>';
+    return;
+  }
+  list.innerHTML = '';
+  const now = new Date();
+  for (const c of codes) {
+    const expires = c.expiresAt?.toDate ? c.expiresAt.toDate() : null;
+    const expired = !c.active || (expires && expires < now);
+    const row = document.createElement('div');
+    row.className = 'code-row' + (expired ? ' expired' : '');
+    row.innerHTML = `
+      <span class="code-val">${c.id}</span>
+      <span class="code-meta">
+        ${c.label ? `<span class="label">${c.label}</span>` : ''}
+        Expires ${fmtDate(c.expiresAt)}
+      </span>
+      <span class="badge ${expired ? 'off' : ''}">${expired ? (c.active ? 'Expired' : 'Revoked') : 'Active'}</span>
+      ${expired ? '' : '<button class="btn-danger" data-revoke>Revoke</button>'}
+    `;
+    if (!expired) {
+      row.querySelector('[data-revoke]').addEventListener('click', async () => {
+        await updateDoc(doc(db, 'properties', slug, 'codes', c.id), { active: false });
+        loadCodes(slug);
+      });
+    }
+    list.appendChild(row);
+  }
+}
+
+// ── Add code ──────────────────────────────────────────────
+function defaultExpiry() {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0, 10);
+}
+$('new-expiry').value = defaultExpiry();
+
+$('suggest-code-btn').addEventListener('click', () => {
+  $('new-code').value = String(Math.floor(1000 + Math.random() * 9000));
+});
+
+$('add-code-btn').addEventListener('click', async () => {
+  const err = $('add-code-err');
+  err.classList.remove('show');
+  $('result').classList.add('hidden');
+
+  const slug = $('property-select').value;
+  const code = $('new-code').value.trim();
+  const expiryStr = $('new-expiry').value;
+  const label = $('new-label').value.trim();
+
+  if (!slug) { err.textContent = 'Register or select a property first.'; err.classList.add('show'); return; }
+  if (!/^\d{4}$/.test(code)) { err.textContent = 'Code must be exactly 4 digits.'; err.classList.add('show'); return; }
+  if (!expiryStr) { err.textContent = 'Pick an expiry date.'; err.classList.add('show'); return; }
+  const expiryDate = new Date(expiryStr + 'T23:59:59');
+  if (expiryDate <= new Date()) { err.textContent = 'Expiry must be in the future.'; err.classList.add('show'); return; }
+
+  const existing = await getDoc(doc(db, 'properties', slug, 'codes', code));
+  if (existing.exists() && existing.data().active && existing.data().expiresAt?.toDate() > new Date()) {
+    if (!confirm(`Code ${code} is already active for this property. Overwrite it?`)) return;
+  }
+
+  const contentKeyB64 = properties[slug]?.contentKeyB64;
+  if (!contentKeyB64) { err.textContent = 'This property has no content key on file — re-check registration.'; err.classList.add('show'); return; }
+
+  const btn = $('add-code-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  await setDoc(doc(db, 'properties', slug, 'codes', code), {
+    active: true,
+    label: label || null,
+    expiresAt: Timestamp.fromDate(expiryDate),
+    contentKeyB64,
+    createdAt: serverTimestamp(),
+    createdBy: auth.currentUser.email,
+  });
+  btn.disabled = false; btn.textContent = 'Generate & save code';
+
+  const message = `${GUIDE_BASE_URL}${slug}/\nPasscode: ${code}`;
+  $('result-text').textContent = message;
+  $('result').classList.remove('hidden');
+  $('new-code').value = ''; $('new-label').value = ''; $('new-expiry').value = defaultExpiry();
+  await loadCodes(slug);
+});
+
+$('copy-result-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText($('result-text').textContent);
+  $('copy-result-btn').textContent = 'Copied ✓';
+  setTimeout(() => { $('copy-result-btn').textContent = 'Copy message'; }, 1500);
+});
+</script>
+</body>
+</html>

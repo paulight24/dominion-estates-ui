@@ -1,0 +1,42 @@
+rules_version = '2';
+
+// Dominion Estates check-in codes.
+//
+// - Guests never sign in. Their only "credential" is knowing the exact
+//   4-digit code, which is also the Firestore document ID — so a guest can
+//   fetch ONE code doc if they already know its ID (`get`), but can never
+//   browse/enumerate the codes for a property (`list` is admin-only).
+// - A code only comes back if it's still active and its expiry is in the
+//   future — enforced here, not just in page JavaScript.
+// - Admins (you + partners) sign in with Firebase Authentication and are
+//   allowed by email address below.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email in [
+          'dominionestatesllc7@gmail.com',
+          'ebabalola01@gmail.com'
+        ];
+    }
+
+    match /properties/{slug} {
+      // Property metadata (name, content key) is admin-only.
+      allow read, write: if isAdmin();
+
+      match /codes/{code} {
+        // Guests: fetch exactly the code they were given, only while it's
+        // active and not expired. No listing — codes can't be browsed.
+        // Admins can always get a code doc (e.g. to check for a collision
+        // with an old/expired one before reusing that 4-digit code).
+        allow get: if isAdmin()
+                    || (resource.data.active == true
+                        && resource.data.expiresAt > request.time);
+
+        // Admins: full management (list, add, revoke, edit).
+        allow list, write: if isAdmin();
+      }
+    }
+  }
+}
