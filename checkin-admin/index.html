@@ -44,6 +44,8 @@
 
     <div class="card">
       <h2>Send a new code</h2>
+      <label for="new-guest-name">Guest first name <span class="hint">used in the message below</span></label>
+      <input id="new-guest-name" placeholder="e.g. Sarah" />
       <div class="row">
         <div>
           <label for="new-code">4-digit code</label>
@@ -212,6 +214,27 @@ function defaultExpiry() {
   return d.toISOString().slice(0, 10);
 }
 
+function buildGuestMessage(guestName, slug, code) {
+  const name = guestName || 'Guest';
+  return `Dear ${name},
+
+Here is your personalized check-in guide for your upcoming stay.
+
+Check-in Guide:
+${GUIDE_BASE_URL}${slug}/
+
+Passcode: ${code}
+
+The guide includes everything you'll need for a smooth arrival, including check-in instructions, parking information, WiFi details, and helpful information about the property and surrounding area.
+
+Please note: Your door and gate access code will be sent separately before check-in.
+
+If you have any questions before your arrival, please don't hesitate to reach out. We look forward to hosting you!
+
+Warm regards,
+Dominion team`;
+}
+
 async function addCode() {
   const err = $('add-code-err');
   err.classList.remove('show');
@@ -221,6 +244,7 @@ async function addCode() {
   const code = $('new-code').value.trim();
   const expiryStr = $('new-expiry').value;
   const label = $('new-label').value.trim();
+  const guestName = $('new-guest-name').value.trim();
 
   if (!slug) return showError(err, 'Add a property on the Properties tab first.');
   if (!/^\d{4}$/.test(code)) return showError(err, 'Code must be exactly 4 digits.');
@@ -256,9 +280,9 @@ async function addCode() {
   }
   btn.disabled = false; btn.textContent = 'Generate & save code';
 
-  $('result-text').textContent = `${GUIDE_BASE_URL}${slug}/\nPasscode: ${code}`;
+  $('result-text').textContent = buildGuestMessage(guestName, slug, code);
   $('result').classList.remove('hidden');
-  $('new-code').value = ''; $('new-label').value = ''; $('new-expiry').value = defaultExpiry();
+  $('new-code').value = ''; $('new-label').value = ''; $('new-guest-name').value = ''; $('new-expiry').value = defaultExpiry();
   await loadCodes(slug);
 }
 </script>
