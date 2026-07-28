@@ -182,15 +182,24 @@ async function loadCodes(slug) {
     if (c.label) row.querySelector('.label').textContent = c.label;
 
     if (!dead) {
-      row.querySelector('[data-revoke]').addEventListener('click', async () => {
-        if (!confirm(`Revoke code ${c.id}? The guest's link will stop working immediately.`)) return;
-        try {
-          await updateDoc(doc(db, 'properties', slug, 'codes', c.id), { active: false });
-        } catch (e) {
-          alert(friendlyError(e));
-          return;
-        }
-        loadCodes(slug);
+      row.querySelector('[data-revoke]').addEventListener('click', () => {
+        // Inline confirm, not window.confirm() — a native dialog's "don't
+        // ask again" checkbox can silently disable future confirmations.
+        row.innerHTML = `
+          <span class="list-meta"><span class="label" style="color:var(--danger)">Revoke code ${c.id}? The guest's link stops working immediately.</span></span>
+          <button class="btn-ghost" data-cancel style="padding:7px 12px;font-size:.82rem">Cancel</button>
+          <button class="btn-danger" data-confirm-revoke>Yes, revoke</button>
+        `;
+        row.querySelector('[data-cancel]').addEventListener('click', () => loadCodes(slug));
+        row.querySelector('[data-confirm-revoke]').addEventListener('click', async (e) => {
+          e.target.disabled = true; e.target.textContent = 'Revoking…';
+          try {
+            await updateDoc(doc(db, 'properties', slug, 'codes', c.id), { active: false });
+          } catch (err) {
+            alert(friendlyError(err));
+          }
+          loadCodes(slug);
+        });
       });
     }
     list.appendChild(row);
