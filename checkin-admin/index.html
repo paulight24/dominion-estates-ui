@@ -167,6 +167,10 @@ async function loadCodes(slug) {
   for (const c of codes) {
     const expires = c.expiresAt?.toDate ? c.expiresAt.toDate() : null;
     const dead = !c.active || (expires && expires < now);
+
+    const item = document.createElement('div');
+    item.className = 'list-item';
+
     const row = document.createElement('div');
     row.className = 'list-row' + (dead ? ' dim' : '');
     row.innerHTML = `
@@ -176,12 +180,31 @@ async function loadCodes(slug) {
         Expires ${fmtDate(c.expiresAt)}
       </span>
       <span class="badge ${dead ? 'off' : ''}">${dead ? (c.active ? 'Expired' : 'Revoked') : 'Active'}</span>
+      <button class="btn-ghost" data-view-message style="padding:7px 12px;font-size:.82rem">View message</button>
       ${dead ? '' : '<button class="btn-danger" data-revoke>Revoke</button>'}
     `;
     // Code and label are set as text, never HTML — a guest name should
     // never be able to inject markup into this list.
     row.querySelector('.code-val').textContent = c.id;
     if (c.label) row.querySelector('.label').textContent = c.label;
+    item.appendChild(row);
+
+    const panel = document.createElement('div');
+    panel.className = 'result hidden';
+    panel.style.marginTop = '0';
+    panel.innerHTML = `<pre></pre><button class="btn-ghost" data-copy-message type="button">Copy message</button>`;
+    panel.querySelector('pre').textContent = buildGuestMessage(c.guestName, slug, c.id);
+    item.appendChild(panel);
+
+    row.querySelector('[data-view-message]').addEventListener('click', (e) => {
+      panel.classList.toggle('hidden');
+      e.target.textContent = panel.classList.contains('hidden') ? 'View message' : 'Hide message';
+    });
+    panel.querySelector('[data-copy-message]').addEventListener('click', (e) => {
+      navigator.clipboard.writeText(panel.querySelector('pre').textContent);
+      e.target.textContent = 'Copied ✓';
+      setTimeout(() => { e.target.textContent = 'Copy message'; }, 1500);
+    });
 
     if (!dead) {
       row.querySelector('[data-revoke]').addEventListener('click', () => {
@@ -204,7 +227,7 @@ async function loadCodes(slug) {
         });
       });
     }
-    list.appendChild(row);
+    list.appendChild(item);
   }
 }
 
@@ -268,6 +291,7 @@ async function addCode() {
     await setDoc(doc(db, 'properties', slug, 'codes', code), {
       active: true,
       label: label || null,
+      guestName: guestName || null,
       expiresAt: Timestamp.fromDate(expiryDate),
       contentKeyB64,
       createdAt: serverTimestamp(),

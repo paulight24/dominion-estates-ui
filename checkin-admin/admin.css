@@ -45,6 +45,7 @@ button{cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:600;borde
 
 /* Lists (codes + properties) */
 .list{display:flex;flex-direction:column;gap:10px}
+.list-item{display:flex;flex-direction:column;gap:8px}
 .list-row{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--cream);flex-wrap:wrap}
 .list-row.dim{opacity:.55}
 .code-val{font-family:Georgia,serif;font-size:1.3rem;font-weight:700;color:var(--navy);letter-spacing:.08em;min-width:74px}
