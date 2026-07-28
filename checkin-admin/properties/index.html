@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Properties · Dominion Estates</title>
+<link rel="stylesheet" href="../admin.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login-view">
+    <h1>Dominion Estates</h1>
+    <p class="sub">Property management — sign in to continue</p>
+    <form class="card" id="login-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required />
+      <div class="err" id="login-err"></div>
+      <button class="btn-primary" type="submit" id="login-btn">Sign in</button>
+    </form>
+  </div>
+
+  <div id="admin-view" class="hidden">
+    <div class="topbar">
+      <div>
+        <h1>Properties</h1>
+        <p class="sub">Set up the units that guest codes are issued for</p>
+      </div>
+      <div style="text-align:right">
+        <div class="who" id="who"></div>
+        <button class="btn-ghost" id="logout-btn" style="margin-top:6px;padding:6px 12px;font-size:.82rem">Sign out</button>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+
+    <div class="card">
+      <h2>Your properties</h2>
+      <div id="properties-list" class="list"><p class="muted">Loading…</p></div>
+    </div>
+
+    <div class="card">
+      <h2 id="form-title">Add a property</h2>
+      <label for="p-slug">Slug</label>
+      <p class="hint">The folder name under <code>/checkin/</code> — this is what appears in the guest link, and it must match exactly. Can't be changed after saving.</p>
+      <input id="p-slug" placeholder="newport-1945" />
+      <label for="p-name">Name <span class="hint">for your reference only</span></label>
+      <input id="p-name" placeholder="1945 Sherington Pl · G107" />
+      <label for="p-key">Content key</label>
+      <p class="hint">Printed by <code>node checkin/build.mjs &lt;slug&gt;</code> the first time that property is built.</p>
+      <input id="p-key" placeholder="base64 key from build.mjs output" />
+      <div class="err" id="p-err"></div>
+      <div class="ok" id="p-ok"></div>
+      <div class="row">
+        <button class="btn-primary" id="p-save-btn" type="button">Save property</button>
+        <button class="btn-ghost hidden" id="p-cancel-btn" type="button">Cancel edit</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import {
+  db, $, showError, friendlyError, startAdmin, auth, GUIDE_BASE_URL,
+} from '../admin-common.js';
+import {
+  doc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp,
+} from '../../vendor/firebase/firebase-firestore-lite.js';
+
+let editingSlug = null; // non-null while editing an existing property
+
+startAdmin({ page: 'properties', onReady: init });
+
+async function init() {
+  $('p-save-btn').addEventListener('click', saveProperty);
+  $('p-cancel-btn').addEventListener('click', resetForm);
+  await loadProperties();
+}
+
+async function loadProperties() {
+  const list = $('properties-list');
+  list.innerHTML = '<p class="muted">Loading…</p>';
+  const props = [];
+  try {
+    const snap = await getDocs(collection(db, 'properties'));
+    snap.forEach((d) => props.push({ id: d.id, ...d.data() }));
+  } catch (e) {
+    list.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.textContent = friendlyError(e);
+    list.appendChild(p);
+    return;
+  }
+  props.sort((a, b) => a.id.localeCompare(b.id));
+
+  if (!props.length) {
+    list.innerHTML = '<p class="muted">No properties yet — add your first one below.</p>';
+    return;
+  }
+  list.innerHTML = '';
+  for (const p of props) {
+    const row = document.createElement('div');
+    row.className = 'list-row';
+    row.innerHTML = `
+      <span class="list-meta">
+        <span class="label"></span>
+        <span class="slug-note"></span>
+      </span>
+      <button class="btn-ghost" data-edit style="padding:7px 12px;font-size:.82rem">Edit</button>
+      <button class="btn-danger" data-delete>Delete</button>
+    `;
+    row.querySelector('.label').textContent = p.name || p.id;
+    row.querySelector('.slug-note').textContent = `${GUIDE_BASE_URL}${p.id}/`;
+    row.querySelector('[data-edit]').addEventListener('click', () => startEdit(p));
+    row.querySelector('[data-delete]').addEventListener('click', () => deleteProperty(p));
+    list.appendChild(row);
+  }
+}
+
+function startEdit(p) {
+  editingSlug = p.id;
+  $('form-title').textContent = `Edit ${p.name || p.id}`;
+  $('p-slug').value = p.id;
+  $('p-slug').disabled = true; // the built page has this slug baked in
+  $('p-name').value = p.name || '';
+  $('p-key').value = p.contentKeyB64 || '';
+  $('p-cancel-btn').classList.remove('hidden');
+  $('p-err').classList.remove('show');
+  $('p-ok').classList.remove('show');
+  $('form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetForm() {
+  editingSlug = null;
+  $('form-title').textContent = 'Add a property';
+  $('p-slug').value = '';
+  $('p-slug').disabled = false;
+  $('p-name').value = '';
+  $('p-key').value = '';
+  $('p-cancel-btn').classList.add('hidden');
+  $('p-err').classList.remove('show');
+  $('p-ok').classList.remove('show');
+}
+
+async function saveProperty() {
+  const err = $('p-err'), ok = $('p-ok');
+  err.classList.remove('show'); ok.classList.remove('show');
+
+  const slug = editingSlug || $('p-slug').value.trim();
+  const name = $('p-name').value.trim();
+  const contentKeyB64 = $('p-key').value.trim();
+
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    return showError(err, 'Slug can only contain lowercase letters, numbers and dashes.');
+  }
+  if (!name) return showError(err, 'Give the property a name.');
+  if (!contentKeyB64) return showError(err, 'Paste the content key from build.mjs.');
+
+  const btn = $('p-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    if (editingSlug) {
+      await updateDoc(doc(db, 'properties', slug), { name, contentKeyB64 });
+    } else {
+      await setDoc(doc(db, 'properties', slug), {
+        name, contentKeyB64,
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser.email,
+      }, { merge: true });
+    }
+  } catch (e) {
+    showError(err, friendlyError(e));
+    btn.disabled = false; btn.textContent = 'Save property';
+    return;
+  }
+  btn.disabled = false; btn.textContent = 'Save property';
+
+  const wasEditing = Boolean(editingSlug);
+  resetForm();
+  ok.textContent = wasEditing ? 'Property updated.' : 'Property added.';
+  ok.classList.add('show');
+  await loadProperties();
+}
+
+async function deleteProperty(p) {
+  const label = p.name || p.id;
+  const typed = prompt(
+    `Delete "${label}"?\n\nThis also deletes every code issued for it, and any guest link for ` +
+    `/checkin/${p.id}/ will stop working immediately.\n\nType the slug "${p.id}" to confirm:`
+  );
+  if (typed === null) return;
+  if (typed.trim() !== p.id) {
+    alert("That didn't match the slug — nothing was deleted.");
+    return;
+  }
+  try {
+    // Firestore doesn't cascade: remove the codes subcollection first, so
+    // deleting a property never leaves orphaned codes behind.
+    const codes = await getDocs(collection(db, 'properties', p.id, 'codes'));
+    await Promise.all(codes.docs.map((c) => deleteDoc(doc(db, 'properties', p.id, 'codes', c.id))));
+    await deleteDoc(doc(db, 'properties', p.id));
+  } catch (e) {
+    alert(friendlyError(e));
+    return;
+  }
+  if (editingSlug === p.id) resetForm();
+  await loadProperties();
+}
+</script>
+</body>
+</html>
