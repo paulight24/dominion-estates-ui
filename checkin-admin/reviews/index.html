@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Reviews · Dominion Estates</title>
+<link rel="stylesheet" href="../admin.css" />
+<style>
+  .stars-view{color:var(--gold-dk);letter-spacing:.05em}
+  .review-text{color:#3c4552;font-size:.92rem;margin-top:6px;line-height:1.5}
+  .review-row{flex-wrap:wrap}
+  .review-row .list-meta{min-width:220px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login-view">
+    <h1>Dominion Estates</h1>
+    <p class="sub">Review moderation — sign in to continue</p>
+    <form class="card" id="login-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required />
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required />
+      <div class="err" id="login-err"></div>
+      <button class="btn-primary" type="submit" id="login-btn">Sign in</button>
+    </form>
+  </div>
+
+  <div id="admin-view" class="hidden">
+    <div class="topbar">
+      <div>
+        <h1>Reviews</h1>
+        <p class="sub">Approve guest submissions and publish them to the site</p>
+      </div>
+      <div style="text-align:right">
+        <div class="who" id="who"></div>
+        <button class="btn-ghost" id="logout-btn" style="margin-top:6px;padding:6px 12px;font-size:.82rem">Sign out</button>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+
+    <div class="card">
+      <h2>Publish snapshot</h2>
+      <p class="muted" style="margin-bottom:14px">Approved reviews, ready to hand off for publishing to the live site. The site itself never reads Firestore — this snapshot is what turns into the static page.</p>
+      <button class="btn-ghost" id="snapshot-btn" type="button">Copy approved reviews JSON</button>
+      <div class="result hidden" id="snapshot-result">
+        <pre id="snapshot-text"></pre>
+        <button class="btn-ghost" id="copy-snapshot-btn" type="button">Copy</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Submissions</h2>
+      <div id="reviews-list" class="list"><p class="muted">Loading…</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { db, $, friendlyError, fmtDate, startAdmin } from '../admin-common.js';
+import { doc, updateDoc, collection, getDocs } from '../../vendor/firebase/firebase-firestore-lite.js';
+
+startAdmin({ page: 'reviews', onReady: init });
+
+async function init() {
+  $('snapshot-btn').addEventListener('click', showSnapshot);
+  $('copy-snapshot-btn').addEventListener('click', () => {
+    navigator.clipboard.writeText($('snapshot-text').textContent);
+    $('copy-snapshot-btn').textContent = 'Copied ✓';
+    setTimeout(() => { $('copy-snapshot-btn').textContent = 'Copy'; }, 1500);
+  });
+  await loadReviews();
+}
+
+const STATUS_ORDER = { pending: 0, approved: 1, rejected: 2 };
+const STATUS_LABEL = { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' };
+
+async function fetchAllReviews() {
+  const snap = await getDocs(collection(db, 'reviews'));
+  const reviews = [];
+  snap.forEach((d) => reviews.push({ id: d.id, ...d.data() }));
+  return reviews;
+}
+
+async function loadReviews() {
+  const list = $('reviews-list');
+  list.innerHTML = '<p class="muted">Loading…</p>';
+  let reviews;
+  try {
+    reviews = await fetchAllReviews();
+  } catch (e) {
+    list.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.textContent = friendlyError(e);
+    list.appendChild(p);
+    return;
+  }
+
+  reviews.sort((a, b) => {
+    const byStatus = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9);
+    if (byStatus !== 0) return byStatus;
+    return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+  });
+
+  if (!reviews.length) {
+    list.innerHTML = '<p class="muted">No reviews submitted yet.</p>';
+    return;
+  }
+  list.innerHTML = '';
+  for (const r of reviews) {
+    list.appendChild(buildReviewRow(r));
+  }
+}
+
+function buildReviewRow(r) {
+  const row = document.createElement('div');
+  row.className = 'list-row review-row' + (r.status !== 'pending' ? ' dim' : '');
+
+  const fullName = [r.firstName, r.lastName].filter(Boolean).join(' ');
+  const badgeClass = r.status === 'pending' ? '' : (r.status === 'approved' ? '' : 'off');
+
+  row.innerHTML = `
+    <span class="list-meta">
+      <span class="label"></span>
+      <span class="stars-view"></span> · Submitted ${fmtDate(r.createdAt)}${r.email ? ' · <span class="email-note"></span>' : ''}
+      <p class="review-text"></p>
+    </span>
+    <span class="badge ${badgeClass}"></span>
+  `;
+  row.querySelector('.label').textContent = fullName || 'Guest';
+  row.querySelector('.stars-view').textContent = '★'.repeat(r.rating || 0) + '☆'.repeat(5 - (r.rating || 0));
+  row.querySelector('.review-text').textContent = r.reviewText || '';
+  row.querySelector('.badge').textContent = STATUS_LABEL[r.status] || r.status;
+  if (r.email) row.querySelector('.email-note').textContent = r.email;
+
+  const actions = document.createElement('span');
+  actions.style.display = 'flex';
+  actions.style.gap = '8px';
+  if (r.status !== 'approved') {
+    const approveBtn = document.createElement('button');
+    approveBtn.className = 'btn-ghost';
+    approveBtn.style.cssText = 'padding:7px 12px;font-size:.82rem';
+    approveBtn.textContent = 'Approve';
+    approveBtn.addEventListener('click', () => setStatus(r.id, 'approved', row));
+    actions.appendChild(approveBtn);
+  }
+  if (r.status !== 'rejected') {
+    const rejectBtn = document.createElement('button');
+    rejectBtn.className = 'btn-danger';
+    rejectBtn.textContent = 'Reject';
+    rejectBtn.addEventListener('click', () => setStatus(r.id, 'rejected', row));
+    actions.appendChild(rejectBtn);
+  }
+  if (r.status !== 'pending') {
+    const undoBtn = document.createElement('button');
+    undoBtn.className = 'btn-ghost';
+    undoBtn.style.cssText = 'padding:7px 12px;font-size:.82rem';
+    undoBtn.textContent = 'Revert to pending';
+    undoBtn.addEventListener('click', () => setStatus(r.id, 'pending', row));
+    actions.appendChild(undoBtn);
+  }
+  row.appendChild(actions);
+  return row;
+}
+
+async function setStatus(id, status, row) {
+  const buttons = row.querySelectorAll('button');
+  buttons.forEach((b) => (b.disabled = true));
+  try {
+    await updateDoc(doc(db, 'reviews', id), { status });
+  } catch (e) {
+    alert(friendlyError(e));
+  }
+  await loadReviews();
+}
+
+function monthYear(ts) {
+  const d = ts?.toDate ? ts.toDate() : new Date();
+  return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+function isoMonth(ts) {
+  const d = ts?.toDate ? ts.toDate() : new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+async function showSnapshot() {
+  const btn = $('snapshot-btn');
+  btn.disabled = true; btn.textContent = 'Building…';
+  let reviews;
+  try {
+    reviews = await fetchAllReviews();
+  } catch (e) {
+    alert(friendlyError(e));
+    btn.disabled = false; btn.textContent = 'Copy approved reviews JSON';
+    return;
+  }
+  const approved = reviews
+    .filter((r) => r.status === 'approved')
+    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
+    .map((r) => ({
+      name: r.firstName,
+      date: monthYear(r.createdAt),
+      dateISO: isoMonth(r.createdAt),
+      rating: r.rating,
+      text: r.reviewText,
+    }));
+  $('snapshot-text').textContent = JSON.stringify(approved, null, 2);
+  $('snapshot-result').classList.remove('hidden');
+  btn.disabled = false; btn.textContent = 'Copy approved reviews JSON';
+}
+</script>
+</body>
+</html>

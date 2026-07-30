@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Tabor",
+    "date": "March 2025",
+    "dateISO": "2025-03",
+    "rating": 5,
+    "text": "My recent stay was wonderful! The host was super responsive. The pool felt like a resort with palm trees, shaded areas, and two different hot tubs. I'm already looking forward to my next visit!"
+  },
+  {
+    "name": "Madison",
+    "date": "June 2025",
+    "dateISO": "2025-06",
+    "rating": 5,
+    "text": "Awesome location and walking distance to a lot of great restaurants! The host was helpful and responsive."
+  },
+  {
+    "name": "Julissa",
+    "date": "September 2025",
+    "dateISO": "2025-09",
+    "rating": 5,
+    "text": "Place was exactly how it shows in the description. The area was close to everything and was a nice neighborhood. We loved it!"
+  },
+  {
+    "name": "Eric",
+    "date": "September 2025",
+    "dateISO": "2025-09",
+    "rating": 5,
+    "text": "Convenient location. Kitchen had what I needed to cook for myself for a longer stay. Complex is quiet and parking was very close."
+  },
+  {
+    "name": "Scott",
+    "date": "March 2025",
+    "dateISO": "2025-03",
+    "rating": 5,
+    "text": "Great location. Excellent value. Kean Coffee is right across the street — highly recommend."
+  },
+  {
+    "name": "Tish",
+    "date": "August 2025",
+    "dateISO": "2025-08",
+    "rating": 5,
+    "text": "The pool was very nice and great, walkable location."
+  },
+  {
+    "name": "Cooper",
+    "date": "September 2025",
+    "dateISO": "2025-09",
+    "rating": 5,
+    "text": "Great stay, communicative host."
+  }
+]

@@ -21,6 +21,17 @@ service cloud.firestore {
         ];
     }
 
+    function isValidNewReview(d) {
+      return d.keys().hasOnly(['firstName', 'lastName', 'email', 'rating', 'reviewText', 'status', 'createdAt'])
+        && d.firstName is string && d.firstName.size() > 0 && d.firstName.size() <= 60
+        && (!('lastName' in d) || (d.lastName is string && d.lastName.size() <= 60))
+        && (!('email' in d) || (d.email is string && d.email.size() <= 120))
+        && d.rating is int && d.rating >= 1 && d.rating <= 5
+        && d.reviewText is string && d.reviewText.size() > 0 && d.reviewText.size() <= 2000
+        && d.status == 'pending'
+        && d.createdAt == request.time;
+    }
+
     match /properties/{slug} {
       // Property metadata (name, content key) is admin-only.
       allow read, write: if isAdmin();
@@ -37,6 +48,16 @@ service cloud.firestore {
         // Admins: full management (list, add, revoke, edit).
         allow list, write: if isAdmin();
       }
+    }
+
+    // Guest-submitted reviews. Anyone can submit one (no sign-in), but
+    // nobody except an admin can read them back — the public site never
+    // reads Firestore for reviews at all; approved ones get baked into
+    // static HTML separately (see reviews/build.mjs). This keeps emails
+    // and not-yet-approved text from being scraped or listed.
+    match /reviews/{reviewId} {
+      allow create: if isValidNewReview(request.resource.data);
+      allow read, update, delete: if isAdmin();
     }
   }
 }

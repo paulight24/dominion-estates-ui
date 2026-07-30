@@ -85,13 +85,21 @@ export function startAdmin({ page, onReady }) {
   });
 }
 
+// Each screen is either the /checkin-admin/ root ('codes') or a
+// subdirectory of it — hrefs are relative to whichever page is current.
+const PAGES = [
+  { id: 'codes', label: '🔑 Guest Codes', dir: '' },
+  { id: 'properties', label: '🏠 Properties', dir: 'properties/' },
+  { id: 'reviews', label: '⭐ Reviews', dir: 'reviews/' },
+];
+
 function renderNav(page) {
   const nav = $('nav');
   if (!nav) return;
-  const codesHref = page === 'properties' ? '../' : './';
-  const propsHref = page === 'properties' ? './' : 'properties/';
-  nav.innerHTML = `
-    <a href="${codesHref}" class="${page === 'codes' ? 'active' : ''}">🔑 Guest Codes</a>
-    <a href="${propsHref}" class="${page === 'properties' ? 'active' : ''}">🏠 Properties</a>
-  `;
+  const fromDir = PAGES.find((p) => p.id === page)?.dir || '';
+  const upToRoot = fromDir ? '../' : './';
+  nav.innerHTML = PAGES.map((p) => {
+    const href = p.id === page ? '.' : (fromDir ? upToRoot + p.dir : p.dir || './');
+    return `<a href="${href || './'}" class="${p.id === page ? 'active' : ''}">${p.label}</a>`;
+  }).join('');
 }
