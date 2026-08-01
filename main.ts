@@ -27,6 +27,7 @@ interface Listing {
   cleaningFee?: number;
   deposit?: number;
   minStay: number; // days
+  hidden?: boolean;
 }
 
 interface BookingFormData {
@@ -44,6 +45,7 @@ class ListingService {
   private listings: Listing[] = [
     {
       id: 'newport-1',
+      hidden: true,
       badge: 'Available Now',
       location: 'Newport Beach, CA',
       title: 'Newport Beach Furnished Apartment — Unit 1',
@@ -90,6 +92,7 @@ class ListingService {
     },
     {
       id: 'newport-2',
+      hidden: true,
       badge: 'Available Now',
       location: 'Newport Beach, CA',
       title: 'Newport Beach Furnished Apartment — Unit 2',
@@ -197,7 +200,7 @@ class ListingService {
   ];
 
   getAll(): Listing[] {
-    return this.listings;
+    return this.listings.filter((l) => !l.hidden);
   }
 
   getById(id: string): Listing | undefined {

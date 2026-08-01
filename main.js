@@ -1,4 +1,12 @@
-"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 // ============================================================
 // Dominion Estates — main.ts
 // Structured for static site interactivity and easy Angular/React migrations.
@@ -9,6 +17,7 @@ class ListingService {
         this.listings = [
             {
                 id: 'newport-1',
+                hidden: true,
                 badge: 'Available Now',
                 location: 'Newport Beach, CA',
                 title: 'Newport Beach Furnished Apartment — Unit 1',
@@ -54,6 +63,7 @@ class ListingService {
             },
             {
                 id: 'newport-2',
+                hidden: true,
                 badge: 'Available Now',
                 location: 'Newport Beach, CA',
                 title: 'Newport Beach Furnished Apartment — Unit 2',
@@ -159,7 +169,7 @@ class ListingService {
         ];
     }
     getAll() {
-        return this.listings;
+        return this.listings.filter((l) => !l.hidden);
     }
     getById(id) {
         return this.listings.find((l) => l.id === id);
@@ -171,58 +181,62 @@ class BookingService {
         // Configured placeholder Formspree endpoint from original source structure
         this.FORMSPREE_ENDPOINT = 'https://formspree.io/f/mrevkqvo';
     }
-    async submit(data) {
-        try {
-            const res = await fetch(this.FORMSPREE_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data),
-            });
-            if (res.ok) {
-                return { success: true, message: "Thank you! Your inquiry was sent successfully. We will follow up within 24 hours." };
+    submit(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const res = yield fetch(this.FORMSPREE_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data),
+                });
+                if (res.ok) {
+                    return { success: true, message: "Thank you! Your inquiry was sent successfully. We will follow up within 24 hours." };
+                }
+                else {
+                    return { success: false, message: 'We encountered an error. Please email us directly at info@dominionestatesrentals.com.' };
+                }
             }
-            else {
-                return { success: false, message: 'We encountered an error. Please email us directly at info@dominionestatesrentals.com.' };
+            catch (_a) {
+                return { success: false, message: 'Network error. Please verify your internet connection or email info@dominionestatesrentals.com.' };
             }
-        }
-        catch {
-            return { success: false, message: 'Network error. Please verify your internet connection or email info@dominionestatesrentals.com.' };
-        }
+        });
     }
-    async handleSubmit(form, listingId) {
-        const statusEl = document.getElementById('form-status');
-        const btnText = form.querySelector('.btn-normal-text');
-        const btnLoading = form.querySelector('.btn-loading-text');
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (btnText && btnLoading && submitBtn) {
-            btnText.style.display = 'none';
-            btnLoading.style.display = 'inline';
-            submitBtn.disabled = true;
-        }
-        statusEl.className = 'form-status-container';
-        statusEl.style.display = 'none';
-        const data = {
-            name: form.elements.namedItem('name').value,
-            email: form.elements.namedItem('email').value,
-            phone: form.elements.namedItem('phone').value,
-            listingId,
-            moveInDate: form.elements.namedItem('moveInDate').value,
-            message: form.elements.namedItem('message').value,
-        };
-        const result = await this.submit(data);
-        if (btnText && btnLoading && submitBtn) {
-            btnText.style.display = 'inline';
-            btnLoading.style.display = 'none';
-            submitBtn.disabled = false;
-        }
-        statusEl.textContent = result.message;
-        statusEl.style.display = 'block';
-        statusEl.className = `form-status-container ${result.success ? 'success' : 'error'}`;
-        if (result.success)
-            form.reset();
+    handleSubmit(form, listingId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const statusEl = document.getElementById('form-status');
+            const btnText = form.querySelector('.btn-normal-text');
+            const btnLoading = form.querySelector('.btn-loading-text');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (btnText && btnLoading && submitBtn) {
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline';
+                submitBtn.disabled = true;
+            }
+            statusEl.className = 'form-status-container';
+            statusEl.style.display = 'none';
+            const data = {
+                name: form.elements.namedItem('name').value,
+                email: form.elements.namedItem('email').value,
+                phone: form.elements.namedItem('phone').value,
+                listingId,
+                moveInDate: form.elements.namedItem('moveInDate').value,
+                message: form.elements.namedItem('message').value,
+            };
+            const result = yield this.submit(data);
+            if (btnText && btnLoading && submitBtn) {
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+            statusEl.textContent = result.message;
+            statusEl.style.display = 'block';
+            statusEl.className = `form-status-container ${result.success ? 'success' : 'error'}`;
+            if (result.success)
+                form.reset();
+        });
     }
 }
 // ── ModalComponent ────────────────────────────────────────────
@@ -413,10 +427,10 @@ class ModalComponent {
         // Attach form submit handler
         const form = document.getElementById('modal-booking-form');
         if (form) {
-            form.addEventListener('submit', async (e) => {
+            form.addEventListener('submit', (e) => __awaiter(this, void 0, void 0, function* () {
                 e.preventDefault();
-                await bookingService.handleSubmit(form, listing.id);
-            });
+                yield bookingService.handleSubmit(form, listing.id);
+            }));
         }
     }
 }
@@ -479,11 +493,12 @@ class CardComponent {
     `;
     }
     slide(id, direction) {
+        var _a;
         const slides = document.getElementById(`slides-${id}`);
         if (!slides)
             return;
         const count = slides.querySelectorAll('img').length;
-        const currentIdx = this.slidePositions.get(id) ?? 0;
+        const currentIdx = (_a = this.slidePositions.get(id)) !== null && _a !== void 0 ? _a : 0;
         const nextIdx = (currentIdx + direction + count) % count;
         this.slidePositions.set(id, nextIdx);
         slides.style.transform = `translateX(-${nextIdx * 100}%)`;
